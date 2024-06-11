@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 5900",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -18,13 +18,20 @@
     "prepare": "husky install"
   },
   "dependencies": {
+    "@hookform/resolvers": "^3.6.0",
+    "chart.js": "^4.4.3",
+    "cheerio": "1.0.0-rc.12",
     "clsx": "^2.0.0",
+    "lowdb": "^7.0.1",
     "lucide-react": "^0.365.0",
-    "next": "^14.0.4",
+    "next": "^14.2.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hook-form": "^7.51.5",
     "react-icons": "^4.12.0",
+    "recharts": "^2.12.7",
     "tailwind-merge": "^2.1.0",
+    "valibot": "^0.31.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
@@ -39,6 +46,7 @@
     "@typescript-eslint/eslint-plugin": "^5.62.0",
     "@typescript-eslint/parser": "^5.62.0",
     "autoprefixer": "^10.4.16",
+    "daisyui": "^4.12.2",
     "eslint": "^8.56.0",
     "eslint-config-next": "^14.0.4",
     "eslint-config-prettier": "^8.10.0",
