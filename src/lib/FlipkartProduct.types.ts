@@ -16,4 +16,5 @@ export interface FlipkartLinks {
   url: string;
   type: string;
   priceNotify: number;
+  soldOut?: boolean;
 }

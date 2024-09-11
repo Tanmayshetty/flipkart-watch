@@ -25,9 +25,41 @@ flipkarLinksToWatch.forEach(async ({ url, type, priceNotify }) => {
     .filter(
       (e) =>
         e.type === 'text' &&
-        flipkartCheerioLoad(e).text().trim().startsWith('₹')
+        flipkartCheerioLoad(e).text().trim().startsWith('₹') &&
+        !flipkartCheerioLoad(e).text().trim().includes('month')
     )
     .map((e) => flipkartCheerioLoad(e).text().trim());
+  const soldOutResult = contentDiv
+    .filter(
+      (e) =>
+        e.type === 'text' &&
+        flipkartCheerioLoad(e).text().trim().startsWith('Sold')
+    )
+    .map((e) => flipkartCheerioLoad(e).text().trim());
+
+  const linkIndex = db.data.flipkarLinksToWatch.findIndex(
+    (links) => links.url === url
+  );
+  if (!result[0] || soldOutResult[0]) {
+    if (soldOutResult[0]) {
+      await db.update(
+        ({ flipkarLinksToWatch }) =>
+        (flipkarLinksToWatch[linkIndex] = {
+          ...flipkarLinksToWatch[linkIndex],
+          soldOut: true,
+        })
+      );
+    }
+    return;
+  } else if (flipkarLinksToWatch[linkIndex].soldOut) {
+    await db.update(
+      ({ flipkarLinksToWatch }) =>
+      (flipkarLinksToWatch[linkIndex] = {
+        ...flipkarLinksToWatch[linkIndex],
+        soldOut: undefined,
+      })
+    );
+  }
   const price = parseInt(result[0].split('₹')[1].replace(',', ''));
   let productsUpdate = db.data.products.find(
     (product) => product.url === url && product.date === utcDate

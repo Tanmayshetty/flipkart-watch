@@ -25,7 +25,7 @@ const FlipkartChart = ({
     <>
       <div className='join flex w-full mx-auto justify-center'>
         <input
-          className='join-item btn w-32'
+          className='join-item btn w-32 !bg-none'
           type='radio'
           name='options'
           aria-label='All'
@@ -33,7 +33,7 @@ const FlipkartChart = ({
         {Array.from(typeSet).map((type) => {
           return (
             <input
-              className='join-item btn w-32'
+              className='join-item btn w-32 !bg-none'
               type='radio'
               name='options'
               aria-label={type}
@@ -49,6 +49,9 @@ const FlipkartChart = ({
           const showNotif =
             product[lastProductIndex].priceNotify >
             product[lastProductIndex].price;
+          const { soldOut } = flipkartLinksToWatch.find(
+            (link) => link.url === url
+          ) ?? { soldOut: false };
           return (
             <div className='w-1/2 h-96 pt-2 pb-24' key={url}>
               <span className='flex w-full pl-6'>
@@ -64,6 +67,22 @@ const FlipkartChart = ({
                   Current Price: {product[product.length - 1].price}
                 </span>
                 <span className='pl-2 text-red-500'>{product[0].type}</span>
+                {soldOut && (
+                  <svg
+                    xmlns='http://www.w3.org/2000/svg'
+                    fill='none'
+                    viewBox='0 0 24 24'
+                    strokeWidth={1.5}
+                    stroke='currentColor'
+                    className='size-6 pl-2'
+                  >
+                    <path
+                      strokeLinecap='round'
+                      strokeLinejoin='round'
+                      d='M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636'
+                    />
+                  </svg>
+                )}
                 {showNotif && (
                   <button className='inline-block relative'>
                     <svg
