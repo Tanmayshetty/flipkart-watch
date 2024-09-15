@@ -1,6 +1,7 @@
 import * as cheerio from 'cheerio';
 import { JSONFilePreset } from 'lowdb/node';
 import path from 'path';
+import puppeteer from 'puppeteer';
 import { fileURLToPath } from 'url';
 
 // Read or create db.json
@@ -11,10 +12,19 @@ const db = await JSONFilePreset(__dirname + '/src/app/db.json', defaultData);
 const { flipkarLinksToWatch } = db.data;
 
 const utcDate = new Date().toJSON().slice(0, 10).replace(/-/g, '/');
-
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+const browser = await puppeteer.launch({ headless: true });
+let linkIndexCount = 0;
+console.log('flipkarLinksToWatch : ', flipkarLinksToWatch.length);
 flipkarLinksToWatch.forEach(async ({ url, type, priceNotify }) => {
-  const flipkartLinkFetch = await fetch(url);
-  const flipkartHTML = await flipkartLinkFetch.text();
+  const page = await browser.newPage();
+  await page.goto(url.trim());
+  const flipkartHTML = await page.content({ waitUntil: 'domcontentloaded' });
+
   const flipkartCheerioLoad = cheerio.load(flipkartHTML);
   const contentDiv = [...flipkartCheerioLoad('div').contents()];
   const textDiv = [...flipkartCheerioLoad('h1 span').contents()];
@@ -44,20 +54,21 @@ flipkarLinksToWatch.forEach(async ({ url, type, priceNotify }) => {
     if (soldOutResult[0]) {
       await db.update(
         ({ flipkarLinksToWatch }) =>
-        (flipkarLinksToWatch[linkIndex] = {
-          ...flipkarLinksToWatch[linkIndex],
-          soldOut: true,
-        })
+          (flipkarLinksToWatch[linkIndex] = {
+            ...flipkarLinksToWatch[linkIndex],
+            soldOut: true,
+          })
       );
     }
+    linkIndexCount += 1;
     return;
   } else if (flipkarLinksToWatch[linkIndex].soldOut) {
     await db.update(
       ({ flipkarLinksToWatch }) =>
-      (flipkarLinksToWatch[linkIndex] = {
-        ...flipkarLinksToWatch[linkIndex],
-        soldOut: undefined,
-      })
+        (flipkarLinksToWatch[linkIndex] = {
+          ...flipkarLinksToWatch[linkIndex],
+          soldOut: undefined,
+        })
     );
   }
   const price = parseInt(result[0].split('₹')[1].replace(',', ''));
@@ -90,6 +101,14 @@ flipkarLinksToWatch.forEach(async ({ url, type, priceNotify }) => {
         shouldNotify,
       })
     );
+  }
+  await sleep(5000);
+  linkIndexCount += 1;
+  try {
+    console.log('Link Index Count : ', linkIndexCount);
+    if (linkIndexCount === flipkarLinksToWatch.length) await browser.close();
+  } catch (err) {
+    console.error('Error during close ', err);
   }
 });
 
