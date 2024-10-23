@@ -50,9 +50,6 @@ const AddNewProductForm = () => {
           onChange={onProductDataChange}
           defaultValue={formData.type}
         >
-          <option disabled selected>
-            Pick one
-          </option>
           <option>Fans</option>
           <option>Routers</option>
           <option>Microwave Ovens</option>
@@ -60,6 +57,7 @@ const AddNewProductForm = () => {
           <option>Chimney</option>
           <option>Water Purifier</option>
           <option>Kitchen Sinks</option>
+          <option>Wash Basins</option>
           <option>Other</option>
         </select>
       </label>

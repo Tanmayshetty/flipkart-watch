@@ -8,6 +8,7 @@ import {
 
 import AddNewProduct from '@/components/AddNewProduct';
 import FlipkartChart from '@/components/FlipkartChart/FlipkartChart';
+import RefreshProducts from '@/components/RefreshProducts';
 /**
  * SVGR Support
  * Caveat: No React Props Type.
@@ -47,6 +48,7 @@ export default async function HomePage() {
       <section className='fixed bottom-1/2 left-2'>
         <AddNewProduct />
       </section>
+      <RefreshProducts />
     </main>
   );
 }

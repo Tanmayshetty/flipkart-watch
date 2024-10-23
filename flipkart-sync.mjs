@@ -19,6 +19,7 @@ function sleep(ms) {
 }
 const browser = await puppeteer.launch({ headless: true });
 let linkIndexCount = 0;
+const todaysProduct = [];
 console.log('flipkarLinksToWatch : ', flipkarLinksToWatch.length);
 flipkarLinksToWatch.forEach(async ({ url, type, priceNotify }) => {
   const page = await browser.newPage();
@@ -90,8 +91,8 @@ flipkarLinksToWatch.forEach(async ({ url, type, priceNotify }) => {
       ({ products }) => (products[productIndex] = productsUpdate)
     );
   } else {
-    await db.update(({ products }) =>
-      products.push({
+    await db.update(({ products }) => {
+      productsUpdate = {
         price,
         date: utcDate,
         type,
@@ -99,14 +100,19 @@ flipkarLinksToWatch.forEach(async ({ url, type, priceNotify }) => {
         url,
         header: productTextDiv[0],
         shouldNotify,
-      })
-    );
+      };
+      products.push(productsUpdate);
+    });
+  }
+  if (shouldNotify) {
+    todaysProduct.push(productsUpdate);
   }
   await sleep(5000);
   linkIndexCount += 1;
   try {
     if (linkIndexCount === flipkarLinksToWatch.length) {
       await browser.close();
+      console.log('todaysProduct : ', todaysProduct);
     }
   } catch (err) {
     console.error('Error during close ', err);
@@ -114,8 +120,3 @@ flipkarLinksToWatch.forEach(async ({ url, type, priceNotify }) => {
 });
 
 await db.write();
-await db.read();
-const todaysProduct = db.data.products.filter(
-  (product) => product.date === utcDate && product.shouldNotify
-);
-console.log('todaysProduct : ', todaysProduct);
