@@ -1,3 +1,6 @@
+Added new product and priceNotify amount via UI.
+Refresh the product amount from Flipkart.
+
 Run the following command to update the DB
 
 ```sh
