@@ -23,7 +23,7 @@ const FlipkartChart = ({
   const typeSet = new Set(flipkartLinksToWatch.map((links) => links.type));
   return (
     <>
-      <div className='join flex w-full mx-auto justify-center'>
+      <div className='join flex w-full mx-auto justify-center flex-wrap'>
         <input
           className='join-item btn w-32 !bg-none'
           type='radio'
@@ -33,7 +33,7 @@ const FlipkartChart = ({
         {Array.from(typeSet).map((type) => {
           return (
             <input
-              className='join-item btn w-32 !bg-none'
+              className='join-item btn w-48 !bg-none'
               type='radio'
               name='options'
               aria-label={type}
@@ -49,11 +49,14 @@ const FlipkartChart = ({
           const showNotif =
             product[lastProductIndex].priceNotify >
             product[lastProductIndex].price;
+          const bottomPrice = showNotif
+            ? product[lastProductIndex].price
+            : product[lastProductIndex].priceNotify;
           const { soldOut } = flipkartLinksToWatch.find(
             (link) => link.url === url
           ) ?? { soldOut: false };
           return (
-            <div className='w-1/2 h-96 pt-2 pb-24' key={url}>
+            <div className='w-1/2 h-96 pt-4 pb-24' key={url}>
               <span className='flex w-full pl-6'>
                 URL:{' '}
                 <a href={url} className='pl-1'>
@@ -117,9 +120,7 @@ const FlipkartChart = ({
                 >
                   <CartesianGrid strokeDasharray='3 3' />
                   <XAxis dataKey='date' />
-                  <YAxis
-                    domain={[product[0].priceNotify - 100, 'dataMax + 200']}
-                  />
+                  <YAxis domain={[bottomPrice - 200, 'dataMax + 200']} />
                   <Tooltip />
                   <Legend />
                   <Line

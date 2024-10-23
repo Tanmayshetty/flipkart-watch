@@ -54,10 +54,10 @@ flipkarLinksToWatch.forEach(async ({ url, type, priceNotify }) => {
     if (soldOutResult[0]) {
       await db.update(
         ({ flipkarLinksToWatch }) =>
-          (flipkarLinksToWatch[linkIndex] = {
-            ...flipkarLinksToWatch[linkIndex],
-            soldOut: true,
-          })
+        (flipkarLinksToWatch[linkIndex] = {
+          ...flipkarLinksToWatch[linkIndex],
+          soldOut: true,
+        })
       );
     }
     linkIndexCount += 1;
@@ -65,10 +65,10 @@ flipkarLinksToWatch.forEach(async ({ url, type, priceNotify }) => {
   } else if (flipkarLinksToWatch[linkIndex].soldOut) {
     await db.update(
       ({ flipkarLinksToWatch }) =>
-        (flipkarLinksToWatch[linkIndex] = {
-          ...flipkarLinksToWatch[linkIndex],
-          soldOut: undefined,
-        })
+      (flipkarLinksToWatch[linkIndex] = {
+        ...flipkarLinksToWatch[linkIndex],
+        soldOut: undefined,
+      })
     );
   }
   const price = parseInt(result[0].split('₹')[1].replace(',', ''));
@@ -105,11 +105,17 @@ flipkarLinksToWatch.forEach(async ({ url, type, priceNotify }) => {
   await sleep(5000);
   linkIndexCount += 1;
   try {
-    console.log('Link Index Count : ', linkIndexCount);
-    if (linkIndexCount === flipkarLinksToWatch.length) await browser.close();
+    if (linkIndexCount === flipkarLinksToWatch.length) {
+      await browser.close();
+    }
   } catch (err) {
     console.error('Error during close ', err);
   }
 });
 
 await db.write();
+await db.read();
+const todaysProduct = db.data.products.filter(
+  (product) => product.date === utcDate && product.shouldNotify
+);
+console.log('todaysProduct : ', todaysProduct);
