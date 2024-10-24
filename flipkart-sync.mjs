@@ -21,8 +21,10 @@ const browser = await puppeteer.launch({ headless: true });
 let linkIndexCount = 0;
 const todaysProduct = [];
 console.log('flipkarLinksToWatch : ', flipkarLinksToWatch.length);
-flipkarLinksToWatch.forEach(async ({ url, type, priceNotify }) => {
-  const page = await browser.newPage();
+
+const page = await browser.newPage();
+while (linkIndexCount < flipkarLinksToWatch.length) {
+  const { url, type, priceNotify } = flipkarLinksToWatch[linkIndexCount];
   await page.goto(url.trim());
   const flipkartHTML = await page.content({ waitUntil: 'domcontentloaded' });
 
@@ -62,7 +64,7 @@ flipkarLinksToWatch.forEach(async ({ url, type, priceNotify }) => {
       );
     }
     linkIndexCount += 1;
-    return;
+    continue;
   } else if (flipkarLinksToWatch[linkIndex].soldOut) {
     await db.update(
       ({ flipkarLinksToWatch }) =>
@@ -107,7 +109,7 @@ flipkarLinksToWatch.forEach(async ({ url, type, priceNotify }) => {
   if (shouldNotify) {
     todaysProduct.push(productsUpdate);
   }
-  await sleep(5000);
+  await sleep(1000);
   linkIndexCount += 1;
   try {
     if (linkIndexCount === flipkarLinksToWatch.length) {
@@ -117,6 +119,6 @@ flipkarLinksToWatch.forEach(async ({ url, type, priceNotify }) => {
   } catch (err) {
     console.error('Error during close ', err);
   }
-});
+}
 
 await db.write();
