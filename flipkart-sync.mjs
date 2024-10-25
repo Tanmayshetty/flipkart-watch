@@ -20,7 +20,6 @@ function sleep(ms) {
 const browser = await puppeteer.launch({ headless: true });
 let linkIndexCount = 0;
 const todaysProduct = [];
-console.log('flipkarLinksToWatch : ', flipkarLinksToWatch.length);
 
 const page = await browser.newPage();
 while (linkIndexCount < flipkarLinksToWatch.length) {
