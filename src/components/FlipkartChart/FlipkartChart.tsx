@@ -1,4 +1,5 @@
 'use client';
+import { useState } from 'react';
 import {
   CartesianGrid,
   Legend,
@@ -21,6 +22,11 @@ const FlipkartChart = ({
 }) => {
   const urls = Object.keys(data);
   const typeSet = new Set(flipkartLinksToWatch.map((links) => links.type));
+  const [filterType, setFilterType] = useState('All');
+  const onFilterChange = (event: React.FormEvent<EventTarget>) => {
+    const { value } = event.target as HTMLInputElement;
+    setFilterType(value);
+  };
   return (
     <>
       <div className='join flex w-full mx-auto justify-center flex-wrap'>
@@ -29,6 +35,8 @@ const FlipkartChart = ({
           type='radio'
           name='options'
           aria-label='All'
+          value='All'
+          onChange={onFilterChange}
         />
         {Array.from(typeSet).map((type) => {
           return (
@@ -37,6 +45,8 @@ const FlipkartChart = ({
               type='radio'
               name='options'
               aria-label={type}
+              value={type}
+              onChange={onFilterChange}
               key={type}
             />
           );
@@ -55,6 +65,12 @@ const FlipkartChart = ({
           const { soldOut } = flipkartLinksToWatch.find(
             (link) => link.url === url
           ) ?? { soldOut: false };
+          if (soldOut) {
+            return null;
+          }
+          if (filterType !== 'All' && filterType !== product[0].type) {
+            return null;
+          }
           return (
             <div className='w-1/2 h-96 pt-4 pb-24' key={url}>
               <span className='flex w-full pl-6'>

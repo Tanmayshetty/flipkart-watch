@@ -58,6 +58,7 @@ const AddNewProductForm = () => {
           <option>Water Purifier</option>
           <option>Kitchen Sinks</option>
           <option>Wash Basins</option>
+          <option>Stabiliser</option>
           <option>Other</option>
         </select>
       </label>
