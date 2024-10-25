@@ -10,7 +10,3 @@ node flipkart-sync.mjs
 ```
 
 Add the above command as cron job on your device to update the current amount daily.
-
-```
-
-```
