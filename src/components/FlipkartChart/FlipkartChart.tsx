@@ -29,7 +29,7 @@ const FlipkartChart = ({
   };
   return (
     <>
-      <div className='join flex w-full mx-auto justify-center flex-wrap'>
+      <div className='join flex w-full mx-auto justify-start flex-wrap px-2'>
         <input
           className='join-item btn w-32 !bg-none'
           type='radio'
