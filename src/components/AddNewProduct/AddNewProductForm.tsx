@@ -2,14 +2,13 @@ import { useState } from 'react';
 const AddNewProductForm = () => {
   const [formData, setFormData] = useState({
     url: '',
-    type: '',
+    type: 'Fans',
     priceNotify: '',
   });
   const onProductDataChange = (event: React.FormEvent<EventTarget>) => {
     const { name, value } = event.target as HTMLInputElement;
     setFormData({ ...formData, [name]: value });
   };
-
   const addProductAPICall = async (event: React.FormEvent<EventTarget>) => {
     event.preventDefault();
     const APIURL = '/api/addProduct';
@@ -54,11 +53,20 @@ const AddNewProductForm = () => {
           <option>Routers</option>
           <option>Microwave Ovens</option>
           <option>Geaser</option>
+          <option>Mixer</option>
+          <option>Mattress</option>
           <option>Chimney</option>
           <option>Water Purifier</option>
+          <option>Furniture</option>
+          <option>Mirror</option>
+          <option>Normal Mirror</option>
+          <option>Ceiling Lamps</option>
           <option>Kitchen Sinks</option>
           <option>Wash Basins</option>
           <option>Stabiliser</option>
+          <option>Washing Machine</option>
+          <option>TV</option>
+          <option>Clock</option>
           <option>Other</option>
         </select>
       </label>

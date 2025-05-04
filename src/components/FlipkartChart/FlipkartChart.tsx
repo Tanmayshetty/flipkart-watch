@@ -11,7 +11,11 @@ import {
   YAxis,
 } from 'recharts';
 
-import { FlipkartLinks, FlipkartProcessed } from '@/lib/FlipkartProduct.types';
+import {
+  FlipkartLinks,
+  FlipkartProcessed,
+  FlipkartProductData,
+} from '@/lib/FlipkartProduct.types';
 
 const FlipkartChart = ({
   data,
@@ -54,8 +58,23 @@ const FlipkartChart = ({
       </div>
       <div className='flex flex-wrap'>
         {urls.map((url) => {
-          const product = data[url];
+          const product = data[url].reduce(
+            (acc: FlipkartProductData[], product: FlipkartProductData) => {
+              const isOldDiff = parseInt(
+                (new Date() - new Date(product.date)) / (1000 * 60 * 60 * 24),
+                10
+              );
+              if (isOldDiff > 60) {
+                return acc;
+              }
+              return [...acc, product];
+            },
+            []
+          );
           const lastProductIndex = product.length - 1;
+          if (product.length === 0) {
+            return null;
+          }
           const showNotif =
             product[lastProductIndex].priceNotify >
             product[lastProductIndex].price;
@@ -65,6 +84,9 @@ const FlipkartChart = ({
           const { soldOut } = flipkartLinksToWatch.find(
             (link) => link.url === url
           ) ?? { soldOut: false };
+          const lowestPrice = data[url].reduce((prev, curr) => {
+            return prev.price < curr.price ? prev : curr;
+          });
           if (soldOut) {
             return null;
           }
@@ -72,7 +94,7 @@ const FlipkartChart = ({
             return null;
           }
           return (
-            <div className='w-1/2 h-96 pt-4 pb-24' key={url}>
+            <div className='w-1/2 h-96 pt-4 pb-28' key={url}>
               <span className='flex w-full pl-6'>
                 URL:{' '}
                 <a href={url} className='pl-1'>
@@ -81,10 +103,11 @@ const FlipkartChart = ({
               </span>
 
               <span key={url} className='flex w-full pl-6 pb-4'>
-                Price Notify: {product[0].priceNotify}
+                Price Notify: {product[lastProductIndex].priceNotify}
                 <span className='pl-2'>
                   Current Price: {product[product.length - 1].price}
                 </span>
+                <span className='pl-2'>Lowest Price: {lowestPrice.price}</span>
                 <span className='pl-2 text-red-500'>{product[0].type}</span>
                 {soldOut && (
                   <svg
