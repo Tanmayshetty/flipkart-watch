@@ -6,7 +6,12 @@ Run the following command to update the DB
 
 ```sh
 node flipkart-sync.mjs
+```
 
+Stop tracking DB Changes to git
+
+```sh
+git update-index --assume-unchanged .\src\app\db.json
 ```
 
 Add the above command as cron job on your device to update the current amount daily.

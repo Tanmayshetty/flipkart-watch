@@ -1,11 +1,14 @@
 export interface FlipkartProductData {
-  price: number;
-  date: string;
+  currentPrice: number;
   type: string;
   priceNotify: number;
   url: string;
-  header: string;
+  productId: number;
+  history: ProductHistory[];
+  isSoldOut: boolean;
   shouldNotify: boolean;
+  lowestPrice: number;
+  header: string;
 }
 
 export interface FlipkartProcessed {
@@ -17,4 +20,11 @@ export interface FlipkartLinks {
   type: string;
   priceNotify: number;
   soldOut?: boolean;
+  header: string;
+}
+
+export interface ProductHistory {
+  price: number;
+  date: string;
+  shouldNotify: boolean;
 }

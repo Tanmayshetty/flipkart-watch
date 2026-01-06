@@ -11,21 +11,10 @@ import {
   YAxis,
 } from 'recharts';
 
-import {
-  FlipkartLinks,
-  FlipkartProcessed,
-  FlipkartProductData,
-} from '@/lib/FlipkartProduct.types';
+import { FlipkartProductData } from '@/lib/FlipkartProduct.types';
 
-const FlipkartChart = ({
-  data,
-  flipkartLinksToWatch,
-}: {
-  data: FlipkartProcessed;
-  flipkartLinksToWatch: FlipkartLinks[];
-}) => {
-  const urls = Object.keys(data);
-  const typeSet = new Set(flipkartLinksToWatch.map((links) => links.type));
+const FlipkartChart = ({ data }: { data: FlipkartProductData[] }) => {
+  const typeSet = new Set(data.map((links) => links.type));
   const [filterType, setFilterType] = useState('All');
   const onFilterChange = (event: React.FormEvent<EventTarget>) => {
     const { value } = event.target as HTMLInputElement;
@@ -57,59 +46,29 @@ const FlipkartChart = ({
         })}
       </div>
       <div className='flex flex-wrap'>
-        {urls.map((url) => {
-          const product = data[url].reduce(
-            (acc: FlipkartProductData[], product: FlipkartProductData) => {
-              const isOldDiff = parseInt(
-                (new Date() - new Date(product.date)) / (1000 * 60 * 60 * 24),
-                10
-              );
-              if (isOldDiff > 60) {
-                return acc;
-              }
-              return [...acc, product];
-            },
-            []
-          );
-          const lastProductIndex = product.length - 1;
-          if (product.length === 0) {
-            return null;
-          }
-          const showNotif =
-            product[lastProductIndex].priceNotify >
-            product[lastProductIndex].price;
-          const bottomPrice = showNotif
-            ? product[lastProductIndex].price
-            : product[lastProductIndex].priceNotify;
-          const { soldOut } = flipkartLinksToWatch.find(
-            (link) => link.url === url
-          ) ?? { soldOut: false };
-          const lowestPrice = data[url].reduce((prev, curr) => {
-            return prev.price < curr.price ? prev : curr;
-          });
-          if (soldOut) {
-            return null;
-          }
-          if (filterType !== 'All' && filterType !== product[0].type) {
+        {data.map((product) => {
+          if (filterType !== 'All' && filterType !== product.type) {
             return null;
           }
           return (
-            <div className='w-1/2 h-96 pt-4 pb-28' key={url}>
+            <div className='w-1/2 h-96 pt-4 pb-28' key={product.url}>
               <span className='flex w-full pl-6'>
                 URL:{' '}
-                <a href={url} className='pl-1'>
-                  {product[0].header}
+                <a href={product.url} className='pl-1'>
+                  {product.header}
                 </a>
               </span>
 
-              <span key={url} className='flex w-full pl-6 pb-4'>
-                Price Notify: {product[lastProductIndex].priceNotify}
+              <span key={product.productId} className='flex w-full pl-6 pb-4'>
+                Price Notify: {product.priceNotify}
                 <span className='pl-2'>
-                  Current Price: {product[product.length - 1].price}
+                  Current Price: {product.currentPrice}
                 </span>
-                <span className='pl-2'>Lowest Price: {lowestPrice.price}</span>
-                <span className='pl-2 text-red-500'>{product[0].type}</span>
-                {soldOut && (
+                <span className='pl-2'>
+                  Lowest Price: {product.lowestPrice}
+                </span>
+                <span className='pl-2 text-red-500'>{product.type}</span>
+                {product.isSoldOut && (
                   <svg
                     xmlns='http://www.w3.org/2000/svg'
                     fill='none'
@@ -125,7 +84,7 @@ const FlipkartChart = ({
                     />
                   </svg>
                 )}
-                {showNotif && (
+                {product.isSoldOut && (
                   <button className='inline-block relative'>
                     <svg
                       xmlns='http://www.w3.org/2000/svg'
@@ -149,7 +108,7 @@ const FlipkartChart = ({
                 <LineChart
                   width={500}
                   height={300}
-                  data={product}
+                  data={product.history}
                   margin={{
                     top: 5,
                     right: 30,
@@ -159,7 +118,9 @@ const FlipkartChart = ({
                 >
                   <CartesianGrid strokeDasharray='3 3' />
                   <XAxis dataKey='date' />
-                  <YAxis domain={[bottomPrice - 200, 'dataMax + 200']} />
+                  <YAxis
+                    domain={[product.lowestPrice - 200, 'dataMax + 200']}
+                  />
                   <Tooltip />
                   <Legend />
                   <Line

@@ -1,29 +1,44 @@
 import * as cheerio from 'cheerio';
-import { JSONFilePreset } from 'lowdb/node';
+import dotenv from 'dotenv';
 import path from 'path';
+import { Pool } from 'pg';
 import puppeteer from 'puppeteer';
 import { fileURLToPath } from 'url';
 
+dotenv.config();
+const pool = new Pool();
 // Read or create db.json
 const defaultData = { products: [], flipkarLinksToWatch: [] };
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
 const __dirname = path.dirname(__filename); // get the name of the directory
-const db = await JSONFilePreset(__dirname + '/src/app/db.json', defaultData);
-const { flipkarLinksToWatch } = db.data;
-
-const utcDate = new Date().toJSON().slice(0, 10).replace(/-/g, '/');
+const { rows: productResults } = await pool.query(
+  'select url,type,price_notify as priceNotify,product_id as productId,sold_out as soldOut from products '
+);
 function sleep(ms) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
 }
-const browser = await puppeteer.launch({ headless: true });
+const browser = await puppeteer.launch({ headless: false });
 let linkIndexCount = 0;
 const todaysProduct = [];
-
+const browserCloseHandler = async (linkIndexCount, browser) => {
+  try {
+    if (linkIndexCount === productResults.length) {
+      await browser.close();
+    }
+  } catch (err) {
+    console.error('Error during close ', err);
+  }
+};
 const page = await browser.newPage();
-while (linkIndexCount < flipkarLinksToWatch.length) {
-  const { url, type, priceNotify } = flipkarLinksToWatch[linkIndexCount];
+while (linkIndexCount < productResults.length) {
+  const {
+    url,
+    pricenotify: priceNotify,
+    productid: productId,
+    soldout: soldOut,
+  } = productResults[linkIndexCount];
   await page.goto(url.trim());
   const flipkartHTML = await page.content({ waitUntil: 'domcontentloaded' });
 
@@ -44,80 +59,41 @@ while (linkIndexCount < flipkarLinksToWatch.length) {
   const soldOutResult = contentDiv
     .filter(
       (e) =>
-        e.type === 'text' &&
-        flipkartCheerioLoad(e).text().trim().startsWith('Sold')
+        (e.type === 'text' &&
+          flipkartCheerioLoad(e).text().trim().startsWith('Sold')) ||
+        flipkartCheerioLoad(e).text().trim().includes('Unavailable')
     )
     .map((e) => flipkartCheerioLoad(e).text().trim());
-
-  const linkIndex = db.data.flipkarLinksToWatch.findIndex(
-    (links) => links.url === url
-  );
   if (!result[0] || soldOutResult[0]) {
     if (soldOutResult[0]) {
-      await db.update(
-        ({ flipkarLinksToWatch }) =>
-        (flipkarLinksToWatch[linkIndex] = {
-          ...flipkarLinksToWatch[linkIndex],
-          soldOut: true,
-        })
-      );
+      await pool.query({
+        text: 'update products set sold_out=true where product_id=$1',
+        values: [productId],
+      });
     }
     linkIndexCount += 1;
+    await browserCloseHandler(linkIndexCount, browser);
     continue;
-  } else if (flipkarLinksToWatch[linkIndex].soldOut) {
-    await db.update(
-      ({ flipkarLinksToWatch }) =>
-      (flipkarLinksToWatch[linkIndex] = {
-        ...flipkarLinksToWatch[linkIndex],
-        soldOut: undefined,
-      })
-    );
-  }
-  const price = parseInt(result[0].split('₹')[1].replace(',', ''));
-  let productsUpdate = db.data.products.find(
-    (product) => product.url === url && product.date === utcDate
-  );
-  const shouldNotify = price < priceNotify;
-  if (productsUpdate) {
-    productsUpdate = {
-      price,
-      ...productsUpdate,
-      header: productTextDiv[0],
-      shouldNotify,
-    };
-    const productIndex = db.data.products.find(
-      (product) => product.url === url && product.date === utcDate
-    );
-    await db.update(
-      ({ products }) => (products[productIndex] = productsUpdate)
-    );
-  } else {
-    await db.update(({ products }) => {
-      productsUpdate = {
-        price,
-        date: utcDate,
-        type,
-        priceNotify,
-        url,
-        header: productTextDiv[0],
-        shouldNotify,
-      };
-      products.push(productsUpdate);
+  } else if (soldOut) {
+    await pool.query({
+      text: 'update products set sold_out=false where product_id=$1',
+      values: [productId],
     });
   }
-  if (shouldNotify) {
-    todaysProduct.push(productsUpdate);
+  const price = parseInt(result[0].split('₹')[1].replace(',', ''));
+  let { rows: productsUpdate } = await pool.query({
+    text: `select * from products INNER JOIN history ON products.product_id=history.product_id
+   where products.url=$1 and history.date=$2`,
+    values: [url, new Date()],
+  });
+  const shouldNotify = price < priceNotify;
+  if (productsUpdate.length === 0) {
+    await pool.query({
+      text: 'insert into history (product_id,price,date,should_notify) values ($1,$2,$3,$4)',
+      values: [productId, price, new Date(), shouldNotify],
+    });
   }
   await sleep(1000);
   linkIndexCount += 1;
-  try {
-    if (linkIndexCount === flipkarLinksToWatch.length) {
-      await browser.close();
-      console.log('todaysProduct : ', todaysProduct);
-    }
-  } catch (err) {
-    console.error('Error during close ', err);
-  }
+  await browserCloseHandler(linkIndexCount, browser);
 }
-
-await db.write();

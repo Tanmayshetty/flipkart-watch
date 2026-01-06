@@ -4,6 +4,7 @@ const AddNewProductForm = () => {
     url: '',
     type: 'Fans',
     priceNotify: '',
+    header: '',
   });
   const onProductDataChange = (event: React.FormEvent<EventTarget>) => {
     const { name, value } = event.target as HTMLInputElement;
@@ -41,6 +42,19 @@ const AddNewProductForm = () => {
       </label>
       <label className='form-control w-full max-w-xs pb-4'>
         <div className='label'>
+          <span className='label-text'>Product Header</span>
+        </div>
+        <input
+          type='text'
+          name='header'
+          placeholder='Type here'
+          className='input input-bordered w-full max-w-xs'
+          onChange={onProductDataChange}
+          value={formData.header}
+        />
+      </label>
+      <label className='form-control w-full max-w-xs pb-4'>
+        <div className='label'>
           <span className='label-text'>Product Type </span>
         </div>
         <select
@@ -51,7 +65,9 @@ const AddNewProductForm = () => {
         >
           <option>Fans</option>
           <option>Routers</option>
+          <option>Laptop</option>
           <option>Microwave Ovens</option>
+          <option>Phone</option>
           <option>Geaser</option>
           <option>Mixer</option>
           <option>Mattress</option>
@@ -66,6 +82,7 @@ const AddNewProductForm = () => {
           <option>Stabiliser</option>
           <option>Washing Machine</option>
           <option>TV</option>
+          <option>HeadPhone</option>
           <option>Clock</option>
           <option>Other</option>
         </select>
