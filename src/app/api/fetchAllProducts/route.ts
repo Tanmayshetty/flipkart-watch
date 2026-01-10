@@ -19,9 +19,10 @@ FROM products INNER JOIN history ON products.product_id = history.product_id ord
       }
       (product.history ??= []).push({
         price: productPrice.price,
-        date: productPrice.date,
+        date: productPrice.date.toLocaleDateString(),
         shouldNotify: productPrice.should_notify,
       });
+
       product.currentPrice = productPrice.price;
       product.shouldNotify = productPrice.should_notify;
       if (isNew) {

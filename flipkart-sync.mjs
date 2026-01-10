@@ -19,6 +19,39 @@ function sleep(ms) {
     setTimeout(resolve, ms);
   });
 }
+async function getResult(contentDiv, shopCheerioLoad, url) {
+  let result = null;
+  let soldOutResult = null;
+  if (url.includes('flipkart')) {
+    result = contentDiv
+      .filter(
+        (e) =>
+          e.type === 'text' &&
+          shopCheerioLoad(e).text().trim().startsWith('₹') &&
+          !shopCheerioLoad(e).text().trim().includes('month')
+      )
+      .map((e) => shopCheerioLoad(e).text().trim());
+    soldOutResult = contentDiv
+      .filter(
+        (e) =>
+          (e.type === 'text' &&
+            shopCheerioLoad(e).text().trim().startsWith('Sold')) ||
+          shopCheerioLoad(e).text().trim().includes('Unavailable')
+      )
+      .map((e) => shopCheerioLoad(e).text().trim());
+  } else {
+    result = ['₹' + shopCheerioLoad('#apex_desktop .a-price-whole').text()];
+    soldOutResult = shopCheerioLoad('#apex_desktop')
+      .text()
+      .includes('Unavailable')
+      ? [{}]
+      : [];
+    console.log('Result : ', result);
+    console.log('URL : ', url);
+  }
+  console.log('Sold Out :', soldOutResult);
+  return { result, soldOutResult };
+}
 const browser = await puppeteer.launch({ headless: false });
 let linkIndexCount = 0;
 const todaysProduct = [];
@@ -40,30 +73,21 @@ while (linkIndexCount < productResults.length) {
     soldout: soldOut,
   } = productResults[linkIndexCount];
   await page.goto(url.trim());
+  try {
+    if (url.includes('amazon')) {
+      await page.click('text/Continue shopping');
+      await sleep(5000);
+    }
+  } catch (e) {}
   const flipkartHTML = await page.content({ waitUntil: 'domcontentloaded' });
 
-  const flipkartCheerioLoad = cheerio.load(flipkartHTML);
-  const contentDiv = [...flipkartCheerioLoad('div').contents()];
-  const textDiv = [...flipkartCheerioLoad('h1 span').contents()];
-  const productTextDiv = textDiv
-    .filter((e) => e.type === 'text')
-    .map((e) => flipkartCheerioLoad(e).text());
-  const result = contentDiv
-    .filter(
-      (e) =>
-        e.type === 'text' &&
-        flipkartCheerioLoad(e).text().trim().startsWith('₹') &&
-        !flipkartCheerioLoad(e).text().trim().includes('month')
-    )
-    .map((e) => flipkartCheerioLoad(e).text().trim());
-  const soldOutResult = contentDiv
-    .filter(
-      (e) =>
-        (e.type === 'text' &&
-          flipkartCheerioLoad(e).text().trim().startsWith('Sold')) ||
-        flipkartCheerioLoad(e).text().trim().includes('Unavailable')
-    )
-    .map((e) => flipkartCheerioLoad(e).text().trim());
+  const shopCheerioLoad = cheerio.load(flipkartHTML);
+  const contentDiv = [...shopCheerioLoad('div').contents()];
+  const { result, soldOutResult } = await getResult(
+    contentDiv,
+    shopCheerioLoad,
+    url
+  );
   if (!result[0] || soldOutResult[0]) {
     if (soldOutResult[0]) {
       await pool.query({
@@ -88,6 +112,7 @@ while (linkIndexCount < productResults.length) {
   });
   const shouldNotify = price < priceNotify;
   if (productsUpdate.length === 0) {
+    console.log('Price : ', price);
     await pool.query({
       text: 'insert into history (product_id,price,date,should_notify) values ($1,$2,$3,$4)',
       values: [productId, price, new Date(), shouldNotify],
