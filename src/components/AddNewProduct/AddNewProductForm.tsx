@@ -22,6 +22,7 @@ const AddNewProductForm = () => {
       body: JSON.stringify(formData),
     });
     await rawResponse.json();
+    // @ts-expect-error document ref
     document.getElementById('addNewProductModal').close();
   };
 
@@ -108,6 +109,7 @@ const AddNewProductForm = () => {
         className='btn'
         type='button'
         onClick={() => {
+          // @ts-expect-error document ref
           document.getElementById('addNewProductModal').close();
         }}
       >

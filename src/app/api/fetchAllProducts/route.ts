@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server';
 import { FlipkartProductData } from '@/lib/FlipkartProduct.types';
 
 import { pool } from '@/app/api/db';
@@ -8,12 +9,14 @@ export async function GET() {
 FROM products INNER JOIN history ON products.product_id = history.product_id order by history.date`,
   });
   let productPrices: FlipkartProductData[] = productPricesResult.rows.reduce(
-    (productList, productPrice) => {
+    (productList: FlipkartProductData[], productPrice) => {
       let isNew = false;
-      let product = productList.find(
+      // @ts-expect-error May be null 
+      let product: FlipkartProductData = productList.find(
         (produ) => produ.productId === productPrice.product_id
       );
       if (!product) {
+        // @ts-expect-error Init
         product = {};
         isNew = true;
       }
@@ -46,5 +49,5 @@ FROM products INNER JOIN history ON products.product_id = history.product_id ord
     const lowestPrice = Math.min(...product.history.map((hist) => hist.price));
     return { ...product, lowestPrice };
   });
-  return Response.json({ products: productPrices });
+  return NextResponse.json({ products: productPrices });
 }

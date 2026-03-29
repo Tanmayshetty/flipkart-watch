@@ -8,6 +8,7 @@ const AddNewProduct = () => {
       <a
         href='#_'
         onClick={(event) => {
+          // @ts-expect-error document ref
           document.getElementById('addNewProductModal').showModal();
           event.preventDefault();
         }}

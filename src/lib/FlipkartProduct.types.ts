@@ -9,6 +9,7 @@ export interface FlipkartProductData {
   shouldNotify: boolean;
   lowestPrice: number;
   header: string;
+  ecommName: string;
 }
 
 export interface FlipkartProcessed {
