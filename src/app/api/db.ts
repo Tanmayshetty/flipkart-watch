@@ -10,11 +10,20 @@ let pool: Pool;
 
 if (process.env.NODE_ENV === 'production') {
   // In production, create a new pool
-  pool = new Pool();
+  pool = new Pool({
+    ssl: {
+      rejectUnauthorized: false
+    }
+
+  });
 } else {
   // In development, reuse the global variable if it exists, otherwise create a new pool
   if (!global.postgresPool) {
-    global.postgresPool = new Pool();
+    global.postgresPool = new Pool({
+      ssl: {
+        rejectUnauthorized: false
+      }
+    });
   }
   pool = global.postgresPool;
 }

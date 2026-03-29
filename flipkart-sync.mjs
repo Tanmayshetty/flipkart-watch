@@ -6,7 +6,11 @@ import puppeteer from 'puppeteer';
 import { fileURLToPath } from 'url';
 
 dotenv.config();
-const pool = new Pool();
+const pool = new Pool({
+  ssl: {
+    rejectUnauthorized: false
+  }
+});
 // Read or create db.json
 const defaultData = { products: [], flipkarLinksToWatch: [] };
 const __filename = fileURLToPath(import.meta.url); // get the resolved path to the file
@@ -78,7 +82,7 @@ while (linkIndexCount < productResults.length) {
       await page.click('text/Continue shopping');
       await sleep(5000);
     }
-  } catch (e) {}
+  } catch (e) { }
   const flipkartHTML = await page.content({ waitUntil: 'domcontentloaded' });
 
   const shopCheerioLoad = cheerio.load(flipkartHTML);
@@ -105,6 +109,15 @@ while (linkIndexCount < productResults.length) {
     });
   }
   const price = parseInt(result[0].split('₹')[1].replace(',', ''));
+  if (Number.isNaN(price)) {
+    linkIndexCount += 1
+    await pool.query({
+      text: 'update products set sold_out=false where product_id=$1',
+      values: [productId],
+    });
+    await browserCloseHandler(linkIndexCount, browser);
+    continue
+  }
   let { rows: productsUpdate } = await pool.query({
     text: `select * from products INNER JOIN history ON products.product_id=history.product_id
    where products.url=$1 and history.date=$2`,
