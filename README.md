@@ -1,6 +1,6 @@
 Add new product and priceNotify amount via UI.
 
-Refresh the product amount from Flipkart from the UI.
+Refresh the product amount from Flipkart/Amazon from the UI.
 
 Run the following command to update the DB
 
