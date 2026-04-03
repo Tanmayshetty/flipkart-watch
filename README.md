@@ -5,7 +5,7 @@ Refresh the product amount from Flipkart/Amazon from the UI.
 Run the following command to update the DB
 
 ```sh
-node flipkart-sync.mjs
+node ecomm-sync.mjs
 ```
 
 Database can be hosted with Neon postgress
