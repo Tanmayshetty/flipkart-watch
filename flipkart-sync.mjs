@@ -28,12 +28,26 @@ async function getResult(contentDiv, shopCheerioLoad, url) {
   let soldOutResult = null;
   if (url.includes('flipkart')) {
     result = contentDiv
-      .filter(
-        (e) =>
+      .filter((e) => {
+        const $element = shopCheerioLoad(e);
+        const elementText = $element.text().trim();
+        // if (e.type === 'text' &&
+        //   elementText.startsWith('₹') &&
+        //   !elementText.includes('month')
+        // ) {
+        //   console.log("All Attr : ", $element.parent().attr())
+        //   console.log("Element Text ", elementText)
+        // }
+
+        return (
           e.type === 'text' &&
-          shopCheerioLoad(e).text().trim().startsWith('₹') &&
-          !shopCheerioLoad(e).text().trim().includes('month')
-      )
+          elementText.startsWith('₹') &&
+          !elementText.includes('month') &&
+          !elementText.includes('Bank') &&
+          $element.parent().attr('font') === 'default-fk-font-m' &&
+          $element.parent().attr('style').includes('#333333ff')
+        );
+      })
       .map((e) => shopCheerioLoad(e).text().trim());
     soldOutResult = contentDiv
       .filter(
@@ -50,10 +64,10 @@ async function getResult(contentDiv, shopCheerioLoad, url) {
       .includes('Unavailable')
       ? [{}]
       : [];
-    console.log('Result : ', result);
-    console.log('URL : ', url);
   }
-  console.log('Sold Out :', soldOutResult);
+  // console.log('Result : ', result);
+  console.log('URL : ', url);
+  // console.log('Sold Out :', soldOutResult);
   return { result, soldOutResult };
 }
 const browser = await puppeteer.launch({ headless: false });
