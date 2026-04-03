@@ -1,3 +1,4 @@
+export const dynamic = 'force-dynamic';
 import { FlipkartProductData } from '@/lib/FlipkartProduct.types';
 
 import AddNewProduct from '@/components/AddNewProduct';
