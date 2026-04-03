@@ -8,11 +8,16 @@ Run the following command to update the DB
 node flipkart-sync.mjs
 ```
 
-Stop tracking DB Changes to git
+Database can be hosted with Neon postgress
 
-```sh
-git update-index --assume-unchanged .\src\app\db.json
+ ```
+PGUSER=
+PGPASSWORD
+PGHOST=
+PGPORT=
+PGDATABASE
 ```
+
 
 Add the above command as cron job on your device to update the current amount daily.
 
